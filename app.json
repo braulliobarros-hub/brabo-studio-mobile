@@ -8,6 +8,9 @@
     "scheme": "brabostudio",
     "userInterfaceStyle": "dark",
     "assetBundlePatterns": ["**/*"],
+    "experiments": {
+      "baseUrl": "/brabo-studio-mobile"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.brabostudio.app"
