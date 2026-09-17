@@ -17,6 +17,7 @@ export default function TelaLogin() {
   const { entrar } = useAuth();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [manterConectado, setManterConectado] = useState(true);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
 
@@ -27,7 +28,7 @@ export default function TelaLogin() {
     }
     setErro("");
     setCarregando(true);
-    const erroLogin = await entrar(email.trim(), senha);
+    const erroLogin = await entrar(email.trim(), senha, manterConectado);
     setCarregando(false);
     if (erroLogin) {
       setErro("E-mail ou senha incorretos.");
@@ -69,6 +70,24 @@ export default function TelaLogin() {
             placeholderTextColor={CORES.cinza}
           />
 
+          <TouchableOpacity
+            style={styles.checkboxLinha}
+            onPress={() => setManterConectado(!manterConectado)}
+            activeOpacity={0.7}
+          >
+            <View
+              style={[
+                styles.checkboxCaixa,
+                manterConectado && styles.checkboxCaixaMarcada,
+              ]}
+            >
+              {manterConectado ? (
+                <Text style={styles.checkboxMarca}>✓</Text>
+              ) : null}
+            </View>
+            <Text style={styles.checkboxTexto}>Manter conectado</Text>
+          </TouchableOpacity>
+
           {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
           <TouchableOpacity
@@ -108,6 +127,27 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 15,
   },
+  checkboxLinha: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 18,
+  },
+  checkboxCaixa: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: CORES.cinza,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  checkboxCaixaMarcada: {
+    backgroundColor: CORES.azul,
+    borderColor: CORES.azul,
+  },
+  checkboxMarca: { color: CORES.branco, fontSize: 13, fontWeight: "700" },
+  checkboxTexto: { color: CORES.cinza, fontSize: 13 },
   erro: { color: CORES.vermelho, marginTop: 14, fontSize: 13 },
   botao: {
     backgroundColor: CORES.azul,
