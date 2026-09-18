@@ -7,6 +7,7 @@
     "icon": "./assets/icon.png",
     "scheme": "brabostudio",
     "userInterfaceStyle": "dark",
+    "backgroundColor": "#050506",
     "assetBundlePatterns": ["**/*"],
     "experiments": {
       "baseUrl": "/brabo-studio-mobile"
@@ -23,7 +24,9 @@
       "package": "com.brabostudio.app"
     },
     "web": {
-      "favicon": "./assets/icon.png"
+      "favicon": "./assets/icon.png",
+      "output": "static",
+      "backgroundColor": "#050506"
     },
     "plugins": [
       "expo-router",
