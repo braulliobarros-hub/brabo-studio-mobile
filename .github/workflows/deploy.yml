@@ -1,4 +1,4 @@
-name: Publicar Brabo Studio (web)
+﻿name: Publicar Brabo Studio (web)
 on:
   push:
     branches: [main]
@@ -19,6 +19,9 @@ jobs:
           echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}" >> .env
           echo "EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK=1" >> .env
       - run: npx expo export --platform web
+      - name: Fundo escuro no HTML (evita flash branco ao carregar/navegar)
+        run: |
+          sed -i 's|</head>|<style>html,body,#root{background-color:#050506!important;}</style><meta name="theme-color" content="#050506"></head>|' dist/index.html
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
