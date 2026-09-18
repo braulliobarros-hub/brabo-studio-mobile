@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { CORES } from "../../lib/theme";
-import { Cartao, Botao, Campo, Seletor } from "../../lib/ui";
+import { Cartao, Botao, Campo, Seletor, TelaAnimada } from "../../lib/ui";
 import { CampoData } from "../../lib/CampoData";
 import {
   formatarMoeda,
@@ -244,6 +244,7 @@ export default function NovaTransacao() {
   }
 
   return (
+    <TelaAnimada style={styles.container}>
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
       <Text style={styles.titulo}>Nova Transação</Text>
 
@@ -366,6 +367,7 @@ export default function NovaTransacao() {
         <Botao texto="Salvar Transação" onPress={salvar} carregando={salvando} />
       </Cartao>
     </ScrollView>
+    </TelaAnimada>
   );
 }
 

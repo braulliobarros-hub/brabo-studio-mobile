@@ -13,7 +13,7 @@ import {
   Platform,
 } from "react-native";
 import { CORES, CORES_TIPO } from "../../lib/theme";
-import { Cartao, Botao, Campo, Seletor } from "../../lib/ui";
+import { Cartao, Botao, Campo, Seletor, TelaAnimada } from "../../lib/ui";
 import { CampoData } from "../../lib/CampoData";
 import { formatarMoeda, dataIsoParaBr, MESES_PT } from "../../lib/format";
 import {
@@ -142,6 +142,7 @@ export default function Historico() {
     editando?.tipo === "Entrada" ? ["Pago", "Parcialmente Pago", "Pendente"] : ["Pago", "Pendente"];
 
   return (
+    <TelaAnimada style={styles.container}>
     <View style={styles.container}>
       <View style={styles.filtros}>
         <View style={{ flex: 1 }}>
@@ -277,6 +278,7 @@ export default function Historico() {
         </View>
       </Modal>
     </View>
+    </TelaAnimada>
   );
 }
 

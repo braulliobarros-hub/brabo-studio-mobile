@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, Alert, Platform } from "react-nativ
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { CORES } from "../../lib/theme";
-import { Cartao, CartaoValor, Botao, Seletor } from "../../lib/ui";
+import { Cartao, CartaoValor, Botao, Seletor, TelaAnimada } from "../../lib/ui";
 import { formatarMoeda, MESES_PT } from "../../lib/format";
 import {
   resumoMes,
@@ -94,6 +94,7 @@ export default function RelatorioMensal() {
   }
 
   return (
+    <TelaAnimada style={styles.container}>
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
       <Text style={styles.titulo}>Relatório Mensal</Text>
 
@@ -162,6 +163,7 @@ export default function RelatorioMensal() {
         </>
       )}
     </ScrollView>
+    </TelaAnimada>
   );
 }
 

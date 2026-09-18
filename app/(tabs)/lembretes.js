@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { View, Text, FlatList, StyleSheet, Image, Linking, RefreshControl, TextInput } from "react-native";
 import { CORES } from "../../lib/theme";
-import { Botao } from "../../lib/ui";
+import { Botao, TelaAnimada } from "../../lib/ui";
 import { dataIsoParaBr } from "../../lib/format";
 import { montarMensagemLembrete, gerarLinkWhatsapp } from "../../lib/constants";
 import { clientesParaLembrete, confirmarLembrete } from "../../lib/queries";
@@ -57,6 +57,7 @@ export default function Lembretes() {
   }
 
   return (
+    <TelaAnimada style={styles.container}>
     <View style={styles.container}>
       <Text style={styles.titulo}>Lembretes de Retorno</Text>
       <Text style={styles.subtitulo}>
@@ -111,6 +112,7 @@ export default function Lembretes() {
         )}
       />
     </View>
+    </TelaAnimada>
   );
 }
 

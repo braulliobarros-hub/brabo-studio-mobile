@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { View, Text, ScrollView, StyleSheet, RefreshControl } from "react-native";
 import { CORES, CORES_TIPO } from "../../lib/theme";
-import { Cartao, CartaoValor } from "../../lib/ui";
+import { Cartao, CartaoValor, TelaAnimada } from "../../lib/ui";
 import { formatarMoeda, dataIsoParaBr, MESES_PT } from "../../lib/format";
 import { resumoMes, ultimosNMeses, pendenciasEmAberto } from "../../lib/queries";
 
@@ -43,6 +43,7 @@ export default function Dashboard() {
   );
 
   return (
+    <TelaAnimada style={styles.container}>
     <ScrollView
       style={styles.container}
       contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
@@ -133,6 +134,7 @@ export default function Dashboard() {
         </Cartao>
       )}
     </ScrollView>
+    </TelaAnimada>
   );
 }
 

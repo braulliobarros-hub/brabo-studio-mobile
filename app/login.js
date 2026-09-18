@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useAuth } from "../lib/auth-context";
 import { CORES } from "../lib/theme";
+import { Botao, TelaAnimada } from "../lib/ui";
 
 export default function TelaLogin() {
   const { entrar } = useAuth();
@@ -36,6 +37,7 @@ export default function TelaLogin() {
   };
 
   return (
+    <TelaAnimada style={styles.container}>
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -90,20 +92,13 @@ export default function TelaLogin() {
 
           {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
-          <TouchableOpacity
-            style={styles.botao}
-            onPress={handleEntrar}
-            disabled={carregando}
-          >
-            {carregando ? (
-              <ActivityIndicator color={CORES.branco} />
-            ) : (
-              <Text style={styles.botaoTexto}>Entrar</Text>
-            )}
-          </TouchableOpacity>
+          <View style={{ marginTop: 26 }}>
+            <Botao texto="Entrar" onPress={handleEntrar} carregando={carregando} />
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>
+    </TelaAnimada>
   );
 }
 

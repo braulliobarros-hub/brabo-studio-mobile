@@ -2,7 +2,7 @@ import { useCallback, useState, useEffect } from "react";
 import { View, Text, FlatList, StyleSheet, Image, TextInput, RefreshControl, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { CORES } from "../../lib/theme";
-import { Botao } from "../../lib/ui";
+import { Botao, TelaAnimada } from "../../lib/ui";
 import { dataIsoParaBr } from "../../lib/format";
 import { listarClientesDetalhado } from "../../lib/queries";
 import { enviarFotoCliente, removerFotoCliente, buscarFotoCliente, obterUrlFoto } from "../../lib/fotos";
@@ -82,6 +82,7 @@ export default function Clientes() {
   );
 
   return (
+    <TelaAnimada style={styles.container}>
     <View style={styles.container}>
       <Text style={styles.titulo}>Clientes</Text>
       <TextInput
@@ -130,6 +131,7 @@ export default function Clientes() {
         )}
       />
     </View>
+    </TelaAnimada>
   );
 }
 
