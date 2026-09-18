@@ -1,21 +1,40 @@
 import { Tabs } from "expo-router";
-import { Text, View, Image, StyleSheet } from "react-native";
+import { Text, View, Image, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { CORES } from "../../lib/theme";
+import { useAuth } from "../../lib/auth-context";
 
 function Icone({ emoji, cor }) {
   return <Text style={{ fontSize: 20, color: cor }}>{emoji}</Text>;
 }
 
 export default function LayoutAbas() {
+  const { sair } = useAuth();
+
+  const confirmarSaida = () => {
+    Alert.alert("Sair da conta", "Quer mesmo sair? Vai precisar logar de novo.", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Sair", style: "destructive", onPress: () => sair() },
+    ]);
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: CORES.preto }}>
       <View style={styles.barraTopo}>
-        <Image
-          source={require("../../assets/logo.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.subMarca}>Gestão Financeira</Text>
+        <View>
+          <Image
+            source={require("../../assets/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.subMarca}>Gestão Financeira</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.botaoSair}
+          onPress={confirmarSaida}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={styles.textoSair}>Sair</Text>
+        </TouchableOpacity>
       </View>
 
       <Tabs
@@ -24,7 +43,7 @@ export default function LayoutAbas() {
           tabBarActiveTintColor: CORES.azul,
           tabBarInactiveTintColor: CORES.cinza,
           // O React Navigation usa fundo branco por padrão no container de
-          // cada tela — sem isso, dava aquele "flash branco" por trás do
+          // cada tela — sem isso, dava aquele "flash branco" por trás de
           // fade ao trocar de aba.
           sceneContainerStyle: { backgroundColor: CORES.preto },
           tabBarStyle: {
@@ -90,7 +109,19 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     paddingHorizontal: 20,
     backgroundColor: CORES.preto,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
   },
   logo: { width: 140, height: 40, alignSelf: "flex-start" },
   subMarca: { color: CORES.cinza, fontSize: 12, marginTop: 4 },
+  botaoSair: {
+    marginTop: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: CORES.cinzaEscuro,
+  },
+  textoSair: { color: CORES.cinza, fontSize: 12, fontWeight: "600" },
 });
