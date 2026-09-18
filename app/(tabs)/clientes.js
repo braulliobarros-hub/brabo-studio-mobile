@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect } from "react";
-import { View, Text, FlatList, StyleSheet, Image, TextInput, RefreshControl, Alert } from "react-native";
+import { View, Text, FlatList, StyleSheet, Image, TextInput, RefreshControl } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { CORES } from "../../lib/theme";
 import { Botao, TelaAnimada } from "../../lib/ui";
@@ -7,6 +7,7 @@ import { dataIsoParaBr } from "../../lib/format";
 import { listarClientesDetalhado } from "../../lib/queries";
 import { enviarFotoCliente, removerFotoCliente, buscarFotoCliente, obterUrlFoto } from "../../lib/fotos";
 import { useAuth } from "../../lib/auth-context";
+import { alertar } from "../../lib/alerta";
 
 export default function Clientes() {
   const { usuario } = useAuth();
@@ -41,7 +42,7 @@ export default function Clientes() {
   async function trocarFoto(cliente) {
     const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissao.granted) {
-      Alert.alert("Permissão necessária", "Preciso de acesso às fotos.");
+      alertar("Permissão necessária", "Preciso de acesso às fotos.");
       return;
     }
     const resultado = await ImagePicker.launchImageLibraryAsync({
@@ -57,14 +58,14 @@ export default function Clientes() {
       await enviarFotoCliente(usuario.id, cliente.cliente, cliente.whatsapp, resultado.assets[0].uri);
       await carregar();
     } catch (e) {
-      Alert.alert("Erro ao salvar foto", e.message);
+      alertar("Erro ao salvar foto", e.message);
     } finally {
       setEnviandoFoto(null);
     }
   }
 
   function removerFoto(cliente) {
-    Alert.alert("Remover foto", `Remover a foto de ${cliente.cliente}?`, [
+    alertar("Remover foto", `Remover a foto de ${cliente.cliente}?`, [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Remover",

@@ -5,7 +5,6 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   RefreshControl,
   Modal,
   ScrollView,
@@ -15,6 +14,7 @@ import {
 import { CORES, CORES_TIPO } from "../../lib/theme";
 import { Cartao, Botao, Campo, Seletor, TelaAnimada } from "../../lib/ui";
 import { CampoData } from "../../lib/CampoData";
+import { alertar } from "../../lib/alerta";
 import { formatarMoeda, dataIsoParaBr, MESES_PT } from "../../lib/format";
 import {
   buscarTransacoes,
@@ -64,7 +64,7 @@ export default function Historico() {
   }
 
   function confirmarExclusao(item) {
-    Alert.alert(
+    alertar(
       "Excluir lançamento",
       `Tem certeza que quer excluir "${item.descricao || item.cliente || item.tipo}"?`,
       [
@@ -105,7 +105,7 @@ export default function Historico() {
     const valorLimpo = editando.valor.replace(/\./g, "").replace(",", ".");
     const valorNumerico = parseFloat(valorLimpo);
     if (!valorNumerico || valorNumerico <= 0) {
-      Alert.alert("Valor inválido", "Digita um valor válido, maior que zero.");
+      alertar("Valor inválido", "Digita um valor válido, maior que zero.");
       return;
     }
     setSalvandoEdicao(true);
@@ -127,7 +127,7 @@ export default function Historico() {
       setSelecionadoId(null);
       carregar();
     } catch (e) {
-      Alert.alert("Erro ao salvar", e.message);
+      alertar("Erro ao salvar", e.message);
     } finally {
       setSalvandoEdicao(false);
     }

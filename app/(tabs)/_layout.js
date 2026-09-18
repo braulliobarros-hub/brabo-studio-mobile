@@ -1,7 +1,8 @@
-import { Tabs } from "expo-router";
-import { Text, View, Image, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { Tabs, useRouter } from "expo-router";
+import { Text, View, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { CORES } from "../../lib/theme";
 import { useAuth } from "../../lib/auth-context";
+import { alertar } from "../../lib/alerta";
 
 function Icone({ emoji, cor }) {
   return <Text style={{ fontSize: 20, color: cor }}>{emoji}</Text>;
@@ -9,11 +10,21 @@ function Icone({ emoji, cor }) {
 
 export default function LayoutAbas() {
   const { sair } = useAuth();
+  const router = useRouter();
 
   const confirmarSaida = () => {
-    Alert.alert("Sair da conta", "Quer mesmo sair? Vai precisar logar de novo.", [
+    alertar("Sair da conta", "Quer mesmo sair? Vai precisar logar de novo.", [
       { text: "Cancelar", style: "cancel" },
-      { text: "Sair", style: "destructive", onPress: () => sair() },
+      {
+        text: "Sair",
+        style: "destructive",
+        onPress: async () => {
+          await sair();
+          // Não dependemos só do listener de sessão pra redirecionar -
+          // aqui a gente já manda direto pra tela de login.
+          router.replace("/login");
+        },
+      },
     ]);
   };
 

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { View, Text, ScrollView, StyleSheet, Alert, Platform } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Platform } from "react-native";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { CORES } from "../../lib/theme";
 import { Cartao, CartaoValor, Botao, Seletor, TelaAnimada } from "../../lib/ui";
 import { formatarMoeda, MESES_PT } from "../../lib/format";
+import { alertar } from "../../lib/alerta";
 import {
   resumoMes,
   resumoPorServico,
@@ -54,7 +55,7 @@ export default function RelatorioMensal() {
         totalFixa, totalVariavel, totalInvestimento, totalRetirada, registros,
       });
     } catch (e) {
-      Alert.alert("Erro ao gerar relatório", e.message);
+      alertar("Erro ao gerar relatório", e.message);
     } finally {
       setCarregando(false);
     }
@@ -71,7 +72,7 @@ export default function RelatorioMensal() {
         // pronta pra imprimir/salvar como PDF pelo próprio navegador.
         const janela = window.open("", "_blank");
         if (!janela) {
-          Alert.alert("Bloqueado pelo navegador", "Permite pop-ups nesse site pra gerar o PDF.");
+          alertar("Bloqueado pelo navegador", "Permite pop-ups nesse site pra gerar o PDF.");
           return;
         }
         janela.document.write(html);
@@ -83,11 +84,11 @@ export default function RelatorioMensal() {
         if (await Sharing.isAvailableAsync()) {
           await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Relatório Brabo Studio" });
         } else {
-          Alert.alert("PDF gerado", `Salvo em: ${uri}`);
+          alertar("PDF gerado", `Salvo em: ${uri}`);
         }
       }
     } catch (e) {
-      Alert.alert("Erro ao gerar PDF", e.message);
+      alertar("Erro ao gerar PDF", e.message);
     } finally {
       setGerandoPdf(false);
     }

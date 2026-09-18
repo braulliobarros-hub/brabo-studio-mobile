@@ -6,12 +6,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Alert,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { CORES } from "../../lib/theme";
 import { Cartao, Botao, Campo, Seletor, TelaAnimada } from "../../lib/ui";
 import { CampoData } from "../../lib/CampoData";
+import { alertar } from "../../lib/alerta";
 import {
   formatarMoeda,
   dataHojeIso,
@@ -129,7 +129,7 @@ export default function NovaTransacao() {
   async function escolherFoto() {
     const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissao.granted) {
-      Alert.alert("Permissão necessária", "Preciso de acesso às fotos pra continuar.");
+      alertar("Permissão necessária", "Preciso de acesso às fotos pra continuar.");
       return;
     }
     const resultado = await ImagePicker.launchImageLibraryAsync({
@@ -152,12 +152,12 @@ export default function NovaTransacao() {
 
   async function salvar() {
     if (!dataIso) {
-      Alert.alert("Data inválida", "Escolhe uma data válida.");
+      alertar("Data inválida", "Escolhe uma data válida.");
       return;
     }
     const valorNumerico = calcularValorNumerico();
     if (!valorNumerico || valorNumerico <= 0) {
-      Alert.alert("Valor inválido", "Digita um valor válido, maior que zero.");
+      alertar("Valor inválido", "Digita um valor válido, maior que zero.");
       return;
     }
 
@@ -202,7 +202,7 @@ export default function NovaTransacao() {
             prazo: i === 1 ? base.prazo : dataParcela,
           });
         }
-        Alert.alert("Parcelas registradas", `${numParcelas}x de ${formatarMoeda(valorBase)} lançadas.`);
+        alertar("Parcelas registradas", `${numParcelas}x de ${formatarMoeda(valorBase)} lançadas.`);
       } else if (tipo === "Entrada" && status === "Parcialmente Pago") {
         const metade1 = Math.round((valorNumerico / 2) * 100) / 100;
         const metade2 = Math.round((valorNumerico - metade1) * 100) / 100;
@@ -218,26 +218,26 @@ export default function NovaTransacao() {
           status: "Pendente",
           descricao: `${descricao.trim() || ""} (Pendente 50%)`.trim(),
         });
-        Alert.alert(
+        alertar(
           "Registrado como Parcialmente Pago",
           `${formatarMoeda(metade1)} Pago agora e ${formatarMoeda(metade2)} Pendente.`
         );
       } else {
         await adicionarTransacao({ ...base, status });
-        Alert.alert("Salvo", "Transação registrada com sucesso!");
+        alertar("Salvo", "Transação registrada com sucesso!");
       }
 
       if (tipo === "Entrada" && fotoUri && cliente.trim()) {
         try {
           await enviarFotoCliente(usuario.id, cliente.trim(), whatsapp.trim(), fotoUri);
         } catch (e) {
-          Alert.alert("Foto não salva", `A transação foi salva, mas a foto não: ${e.message}`);
+          alertar("Foto não salva", `A transação foi salva, mas a foto não: ${e.message}`);
         }
       }
 
       limparFormulario();
     } catch (e) {
-      Alert.alert("Erro ao salvar", e.message);
+      alertar("Erro ao salvar", e.message);
     } finally {
       setSalvando(false);
     }
