@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View, Image, StyleSheet } from "react-native";
 import { CORES } from "../../lib/theme";
 
 function Icone({ emoji, cor }) {
@@ -10,9 +10,11 @@ export default function LayoutAbas() {
   return (
     <View style={{ flex: 1, backgroundColor: CORES.preto }}>
       <View style={styles.barraTopo}>
-        <Text style={styles.marca}>
-          BRABO<Text style={{ color: CORES.azul }}>STUDIO</Text>
-        </Text>
+        <Image
+          source={require("../../assets/logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
         <Text style={styles.subMarca}>Gestão Financeira</Text>
       </View>
 
@@ -85,6 +87,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: CORES.preto,
   },
-  marca: { color: CORES.branco, fontSize: 20, fontWeight: "800" },
-  subMarca: { color: CORES.cinza, fontSize: 12, marginTop: 2 },
+  logo: { width: 140, height: 40, alignSelf: "flex-start" },
+  subMarca: { color: CORES.cinza, fontSize: 12, marginTop: 4 },
 });
