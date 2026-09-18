@@ -21,6 +21,10 @@ export default function Root({ children }) {
         <link rel="icon" type="image/png" sizes="512x512" href="/brabo-studio-mobile/icon-512.png" />
         <link rel="apple-touch-icon" href="/brabo-studio-mobile/apple-touch-icon.png" />
 
+        {/* Fundo escuro no html/body, pra nunca aparecer um flash branco
+            atrás das telas durante o carregamento ou as transições. */}
+        <style dangerouslySetInnerHTML={{ __html: `html, body, #root { background-color: #050506; }` }} />
+
         <ScrollViewStyleReset />
       </head>
       <body>{children}</body>

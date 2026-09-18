@@ -40,14 +40,20 @@ function LayoutInterno() {
     );
   }
 
-  return <Slot />;
+  return (
+    <View style={{ flex: 1, backgroundColor: CORES.preto }}>
+      <Slot />
+    </View>
+  );
 }
 
 export default function RootLayout() {
   return (
     <AuthProvider>
       <StatusBar style="light" backgroundColor={CORES.preto} />
-      <LayoutInterno />
+      <View style={{ flex: 1, backgroundColor: CORES.preto }}>
+        <LayoutInterno />
+      </View>
     </AuthProvider>
   );
 }

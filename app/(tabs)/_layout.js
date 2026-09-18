@@ -23,6 +23,10 @@ export default function LayoutAbas() {
           headerShown: false,
           tabBarActiveTintColor: CORES.azul,
           tabBarInactiveTintColor: CORES.cinza,
+          // O React Navigation usa fundo branco por padrão no container de
+          // cada tela — sem isso, dava aquele "flash branco" por trás do
+          // fade ao trocar de aba.
+          sceneContainerStyle: { backgroundColor: CORES.preto },
           tabBarStyle: {
             backgroundColor: CORES.cinzaEscuro,
             borderTopWidth: 0,
