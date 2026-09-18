@@ -22,6 +22,8 @@ jobs:
       - name: Fundo escuro no HTML (evita flash branco ao carregar/navegar)
         run: |
           sed -i 's|</head>|<style>html,body,#root{background-color:#050506!important;}</style><meta name="theme-color" content="#050506"></head>|' dist/index.html
+      - name: Copia index.html para 404.html (evita 404 ao atualizar a pagina em rotas internas)
+        run: cp dist/index.html dist/404.html
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
