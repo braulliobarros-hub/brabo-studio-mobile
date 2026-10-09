@@ -109,6 +109,13 @@ export default function LayoutAbas() {
             tabBarIcon: ({ color }) => <Icone emoji="👥" cor={color} />,
           }}
         />
+        <Tabs.Screen
+          name="checklist"
+          options={{
+            title: "Checklist",
+            tabBarIcon: ({ color }) => <Icone emoji="✅" cor={color} />,
+          }}
+        />
       </Tabs>
     </View>
   );
