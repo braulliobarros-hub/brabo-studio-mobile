@@ -33,6 +33,7 @@ import {
   enviarPdf,
   abrirPdf,
   baixarPdf,
+  prepararFoto,
 } from "../../lib/checklist";
 
 const MAX_FOTOS = 6;
@@ -183,7 +184,14 @@ export default function Checklist() {
         });
       }
       if (r.canceled) return;
-      const novas = r.assets.map((a) => a.uri);
+      const novas = [];
+      for (const a of r.assets) {
+        try {
+          novas.push(await prepararFoto(a.uri));
+        } catch (e) {
+          console.warn("Foto ignorada:", e.message);
+        }
+      }
       setFotos((atual) => [...atual, ...novas].slice(0, MAX_FOTOS - fotosSalvas.length));
     } catch (e) {
       avisar("Erro ao pegar foto", e.message);
