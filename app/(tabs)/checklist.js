@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import { CORES } from "../../lib/theme";
 import { Botao, Campo, Cartao, TelaAnimada } from "../../lib/ui";
 import { useAuth } from "../../lib/auth-context";
 import { listarClientesDetalhado } from "../../lib/queries";
-import { avisar } from "../../lib/dialogo";
+import { avisar, confirmar } from "../../lib/dialogo";
 import {
   COMBUSTIVEL_OPCOES,
   SUJEIRA_OPCOES,
@@ -25,9 +25,13 @@ import {
 import {
   montarPdf,
   salvarChecklist,
+  atualizarChecklist,
+  excluirChecklist,
+  urlsDasFotos,
   listarChecklistsRecentes,
   dadosParaPdf,
   enviarPdf,
+  abrirPdf,
   baixarPdf,
 } from "../../lib/checklist";
 
@@ -107,7 +111,12 @@ export default function Checklist() {
   const [salvando, setSalvando] = useState(false);
   const [resultado, setResultado] = useState(null); // {pdf, dados}
   const [recentes, setRecentes] = useState([]);
-  const [gerandoId, setGerandoId] = useState(null);
+  const [acao, setAcao] = useState(null); // { id, tipo } do botão que está carregando
+  const [editando, setEditando] = useState(null); // linha do banco em edição
+  const [fotosSalvas, setFotosSalvas] = useState([]); // [{ caminho, url }] fotos já no Storage
+  const [fotosRemovidas, setFotosRemovidas] = useState([]); // caminhos tirados na edição
+  const scrollRef = useRef(null);
+  const totalFotos = fotosSalvas.length + fotos.length;
 
   const carregarRecentes = useCallback(async () => {
     try {
@@ -151,7 +160,7 @@ export default function Checklist() {
   }
 
   async function adicionarFoto(camera) {
-    if (fotos.length >= MAX_FOTOS) {
+    if (totalFotos >= MAX_FOTOS) {
       avisar("Limite de fotos", `Máximo de ${MAX_FOTOS} fotos por checklist.`);
       return;
     }
@@ -170,12 +179,12 @@ export default function Checklist() {
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           quality: 0.5,
           allowsMultipleSelection: true,
-          selectionLimit: MAX_FOTOS - fotos.length,
+          selectionLimit: MAX_FOTOS - totalFotos,
         });
       }
       if (r.canceled) return;
       const novas = r.assets.map((a) => a.uri);
-      setFotos((atual) => [...atual, ...novas].slice(0, MAX_FOTOS));
+      setFotos((atual) => [...atual, ...novas].slice(0, MAX_FOTOS - fotosSalvas.length));
     } catch (e) {
       avisar("Erro ao pegar foto", e.message);
     }
@@ -186,7 +195,115 @@ export default function Checklist() {
     setKm(""); setCombustivel(""); setServico(""); setSujeira("");
     setItens(itensIniciais(veiculo));
     setPertences(""); setObservacoes(""); setFotos([]);
+    setFotosSalvas([]); setFotosRemovidas([]); setEditando(null);
     setResultado(null);
+  }
+
+  function irProTopo() {
+    scrollRef.current?.scrollTo?.({ y: 0, animated: true });
+  }
+
+  async function editar(linha) {
+    setAcao({ id: linha.id, tipo: "editar" });
+    try {
+      const tipo = linha.tipo_veiculo === "Moto" ? "Moto" : "Carro";
+      setResultado(null);
+      setEditando(linha);
+      setVeiculo(tipo);
+      setCliente(linha.cliente || "");
+      setWhatsapp(linha.whatsapp || "");
+      setModelo(linha.modelo || "");
+      setPlaca(linha.placa || "");
+      setCor(linha.cor || "");
+      setKm(linha.km || "");
+      setCombustivel(linha.combustivel || "");
+      setServico(linha.servico || "");
+      setSujeira(linha.sujeira || "");
+      // Junta com a lista padrão, caso algum item tenha sido adicionado depois.
+      setItens({ ...itensIniciais(tipo), ...(linha.itens || {}) });
+      setPertences(linha.pertences || "");
+      setObservacoes(linha.observacoes || "");
+      setFotos([]);
+      setFotosRemovidas([]);
+      setFotosSalvas(await urlsDasFotos(linha.fotos || []));
+      irProTopo();
+    } catch (e) {
+      avisar("Erro ao abrir pra edição", e.message);
+    } finally {
+      setAcao(null);
+    }
+  }
+
+  function cancelarEdicao() {
+    limpar();
+    irProTopo();
+  }
+
+  function removerFotoSalva(f) {
+    setFotosSalvas((atual) => atual.filter((x) => x.caminho !== f.caminho));
+    setFotosRemovidas((atual) => [...atual, f.caminho]);
+  }
+
+  function excluir(linha) {
+    confirmar(
+      "Excluir checklist",
+      `Excluir o checklist de ${linha.cliente || "cliente"} (${linha.modelo || linha.placa || linha.tipo_veiculo})? Isso não tem volta.`,
+      "Excluir",
+      async () => {
+        setAcao({ id: linha.id, tipo: "excluir" });
+        try {
+          await excluirChecklist(linha);
+          if (editando && editando.id === linha.id) limpar();
+          setRecentes((atual) => atual.filter((r) => r.id !== linha.id));
+        } catch (e) {
+          avisar("Não consegui excluir", e.message);
+        } finally {
+          setAcao(null);
+        }
+      },
+      true
+    );
+  }
+
+  async function gerarDaLinha(linha) {
+    const { dados, fotos: fb } = await dadosParaPdf(linha);
+    const pdf = await montarPdf(dados, fb);
+    return { pdf, dados };
+  }
+
+  async function abrirDaLista(linha) {
+    // Na web, abre a aba já no clique pra o navegador não bloquear o pop-up.
+    const janela = Platform.OS === "web" ? window.open("", "_blank") : null;
+    if (janela) janela.document.write("<p style='font-family:sans-serif;padding:20px'>Gerando o PDF...</p>");
+    setAcao({ id: linha.id, tipo: "abrir" });
+    try {
+      const { pdf, dados } = await gerarDaLinha(linha);
+      await abrirPdf(pdf, dados, janela);
+    } catch (e) {
+      if (janela) janela.close();
+      avisar("Erro ao abrir o PDF", e.message);
+    } finally {
+      setAcao(null);
+    }
+  }
+
+  async function enviarDaLista(linha) {
+    setAcao({ id: linha.id, tipo: "enviar" });
+    try {
+      const { pdf, dados } = await gerarDaLinha(linha);
+      if (Platform.OS === "web") {
+        // No navegador o compartilhar precisa de um toque "fresco",
+        // então mostra a tela com o botão de enviar.
+        setResultado({ pdf, dados, salvo: true });
+        irProTopo();
+      } else {
+        await enviarPdf(pdf, dados);
+      }
+    } catch (e) {
+      avisar("Erro ao gerar o PDF", e.message);
+    } finally {
+      setAcao(null);
+    }
   }
 
   async function finalizar() {
@@ -211,34 +328,37 @@ export default function Checklist() {
     };
     try {
       // PDF primeiro: se o banco falhar, o PDF ainda sai.
-      const pdf = await montarPdf({ ...dados, criadoEm: new Date() }, fotos);
+      const criadoEm = editando ? new Date(editando.criado_em) : new Date();
+      const pdf = await montarPdf({ ...dados, criadoEm }, [...fotosSalvas.map((f) => f.url), ...fotos]);
       let salvo = true;
       try {
-        await salvarChecklist(usuario.id, dados, fotos);
+        if (editando) {
+          await atualizarChecklist(
+            editando.id,
+            usuario.id,
+            dados,
+            fotosSalvas.map((f) => f.caminho),
+            fotosRemovidas,
+            fotos
+          );
+        } else {
+          await salvarChecklist(usuario.id, dados, fotos);
+        }
       } catch (e) {
         salvo = false;
         console.warn("Erro ao salvar checklist:", e.message);
       }
-      setResultado({ pdf, dados, salvo });
-      if (salvo) carregarRecentes();
+      setResultado({ pdf, dados: { ...dados, criadoEm }, salvo });
+      if (salvo) {
+        setEditando(null);
+        setFotosSalvas([]);
+        setFotosRemovidas([]);
+        carregarRecentes();
+      }
     } catch (e) {
       avisar("Erro ao gerar o checklist", e.message);
     } finally {
       setSalvando(false);
-    }
-  }
-
-  async function reenviar(linha, baixar) {
-    setGerandoId(linha.id);
-    try {
-      const { dados, fotos: fb } = await dadosParaPdf(linha);
-      const pdf = await montarPdf(dados, fb);
-      if (baixar) await baixarPdf(pdf, dados);
-      else setResultado({ pdf, dados, salvo: true });
-    } catch (e) {
-      avisar("Erro ao gerar o PDF", e.message);
-    } finally {
-      setGerandoId(null);
     }
   }
 
@@ -273,6 +393,8 @@ export default function Checklist() {
           <View style={{ height: 12 }} />
           <Botao texto="Enviar PDF no WhatsApp" cor={CORES.verde} onPress={enviar} />
           <View style={{ height: 10 }} />
+          <Botao texto="Abrir PDF" variante="secundario" onPress={() => abrirPdf(resultado.pdf, resultado.dados).catch((e) => avisar("Erro ao abrir o PDF", e.message))} />
+          <View style={{ height: 10 }} />
           <Botao texto="Baixar PDF" variante="secundario" onPress={() => baixarPdf(resultado.pdf, resultado.dados)} />
           <View style={{ height: 10 }} />
           <Botao texto="Novo checklist" variante="secundario" onPress={limpar} />
@@ -284,8 +406,19 @@ export default function Checklist() {
   return (
     <TelaAnimada>
       <KeyboardAvoidingView style={styles.fundo} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView style={styles.fundo} contentContainerStyle={styles.tela} keyboardShouldPersistTaps="handled">
-          <Text style={styles.titulo}>Checklist de entrada</Text>
+        <ScrollView ref={scrollRef} style={styles.fundo} contentContainerStyle={styles.tela} keyboardShouldPersistTaps="handled">
+          <Text style={styles.titulo}>{editando ? "Editando checklist" : "Checklist de entrada"}</Text>
+          {editando ? (
+            <View style={styles.avisoEdicao}>
+              <Text style={styles.avisoEdicaoTexto}>
+                Editando o checklist de {editando.cliente || "cliente"} de{" "}
+                {new Date(editando.criado_em).toLocaleDateString("pt-BR")}.
+              </Text>
+              <TouchableOpacity onPress={cancelarEdicao} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Text style={styles.avisoEdicaoLink}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
 
           <View style={styles.toggle}>
             {["Carro", "Moto"].map((v) => (
@@ -342,8 +475,14 @@ export default function Checklist() {
 
           <Campo label="Pertences deixados no veículo" value={pertences} onChangeText={setPertences} multiline placeholder="Ex: guarda-chuva, carregador..." />
 
-          <Text style={styles.label}>Fotos ({fotos.length}/{MAX_FOTOS})</Text>
+          <Text style={styles.label}>Fotos ({totalFotos}/{MAX_FOTOS})</Text>
           <View style={styles.fotos}>
+            {fotosSalvas.map((f) => (
+              <TouchableOpacity key={f.caminho} onPress={() => removerFotoSalva(f)}>
+                <Image source={{ uri: f.url }} style={styles.foto} />
+                <Text style={styles.fotoX}>remover</Text>
+              </TouchableOpacity>
+            ))}
             {fotos.map((uri, i) => (
               <TouchableOpacity key={uri + i} onPress={() => setFotos(fotos.filter((_, j) => j !== i))}>
                 <Image source={{ uri }} style={styles.foto} />
@@ -361,7 +500,17 @@ export default function Checklist() {
           <View style={{ height: 14 }} />
           <Campo label="Observações gerais" value={observacoes} onChangeText={setObservacoes} multiline placeholder="Algo que o cliente pediu ou avisou" />
 
-          <Botao texto="Salvar checklist e gerar PDF" onPress={finalizar} carregando={salvando} />
+          <Botao
+            texto={editando ? "Salvar alterações e gerar PDF" : "Salvar checklist e gerar PDF"}
+            onPress={finalizar}
+            carregando={salvando}
+          />
+          {editando ? (
+            <>
+              <View style={{ height: 10 }} />
+              <Botao texto="Cancelar edição" variante="secundario" onPress={cancelarEdicao} />
+            </>
+          ) : null}
 
           {recentes.length > 0 ? (
             <View style={{ marginTop: 26 }}>
@@ -376,7 +525,18 @@ export default function Checklist() {
                   </Text>
                   <View style={[styles.dupla, { marginTop: 10 }]}>
                     <View style={{ flex: 1 }}>
-                      <Botao texto="Abrir / enviar" variante="secundario" carregando={gerandoId === r.id} onPress={() => reenviar(r, false)} />
+                      <Botao texto="Abrir" variante="secundario" carregando={acao?.id === r.id && acao.tipo === "abrir"} disabled={!!acao} onPress={() => abrirDaLista(r)} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Botao texto="Enviar" cor={CORES.verde} carregando={acao?.id === r.id && acao.tipo === "enviar"} disabled={!!acao} onPress={() => enviarDaLista(r)} />
+                    </View>
+                  </View>
+                  <View style={[styles.dupla, { marginTop: 8 }]}>
+                    <View style={{ flex: 1 }}>
+                      <Botao texto="Editar" variante="secundario" carregando={acao?.id === r.id && acao.tipo === "editar"} disabled={!!acao} onPress={() => editar(r)} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Botao texto="Excluir" cor={CORES.vermelho} carregando={acao?.id === r.id && acao.tipo === "excluir"} disabled={!!acao} onPress={() => excluir(r)} />
                     </View>
                   </View>
                 </Cartao>
@@ -419,4 +579,7 @@ const styles = StyleSheet.create({
   fotoX: { color: CORES.cinza, fontSize: 10, textAlign: "center", marginTop: 2 },
   okTitulo: { color: CORES.verde, fontSize: 20, fontWeight: "800", marginBottom: 6 },
   okTexto: { color: CORES.cinza, fontSize: 13, marginTop: 2 },
+  avisoEdicao: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, backgroundColor: CORES.azul + "22", borderColor: CORES.azul, borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 14 },
+  avisoEdicaoTexto: { color: CORES.branco, fontSize: 13, flexShrink: 1 },
+  avisoEdicaoLink: { color: CORES.azul, fontWeight: "800", fontSize: 13 },
 });
