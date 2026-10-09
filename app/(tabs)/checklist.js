@@ -254,7 +254,7 @@ export default function Checklist() {
     const avarias = Object.values(resultado.dados.itens || {}).filter((i) => i.estado === "avaria").length;
     return (
       <TelaAnimada>
-        <ScrollView contentContainerStyle={styles.tela}>
+        <ScrollView style={styles.fundo} contentContainerStyle={styles.tela}>
           <Cartao>
             <Text style={styles.okTitulo}>Checklist pronto</Text>
             <Text style={styles.okTexto}>
@@ -283,8 +283,8 @@ export default function Checklist() {
 
   return (
     <TelaAnimada>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={styles.tela} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView style={styles.fundo} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <ScrollView style={styles.fundo} contentContainerStyle={styles.tela} keyboardShouldPersistTaps="handled">
           <Text style={styles.titulo}>Checklist de entrada</Text>
 
           <View style={styles.toggle}>
@@ -390,6 +390,7 @@ export default function Checklist() {
 }
 
 const styles = StyleSheet.create({
+  fundo: { flex: 1, backgroundColor: CORES.preto },
   tela: { padding: 20, paddingBottom: 60 },
   titulo: { color: CORES.branco, fontSize: 22, fontWeight: "800", marginBottom: 14 },
   label: { color: CORES.cinza, fontSize: 12, marginBottom: 6 },
